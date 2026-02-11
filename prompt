@@ -1,0 +1,343 @@
+minimal/
+│
+├── 📄 DOCUMENTATION FILES
+│├── README.mdComplete setup guide & documentation
+│├── IMPROVEMENTS.mdWhat's new in v2.0
+│├── QUICKSTART.md  5-minute quick start guide
+│└── requirements.txt  Python dependencies
+│
+├── 🐍 CORE APPLICATION
+│└── app.pyFlask server (300+ lines)
+│ ├── Research flow routes (/, /consent, /authenticate, etc.)
+│ ├── Authentication APIs (/api/login/traditional, /api/login/did)
+│ ├── Feedback APIs (/api/feedback/submit, etc.)
+│ └── Admin panel routes (/admin, /admin/login, etc.)
+│
+├── 🗄️  DATABASE MODULE
+│├── database/
+││├── __init__.pyPackage marker
+││├── db.pySQLite connection handler
+││└── models.py  Database schema & operations
+││ ├── init_db() Create tables
+││ ├── create_research_session()
+││ ├── update_session_consent()
+││ ├── create_test_user()
+││ └── clear_all_data()
+││
+│└── 📊 DATABASE TABLES (created by models.py)
+│ ├── usersUser accounts
+│ ├── research_sessionsParticipant journeys
+│ ├── auth_attempts Login attempts with metrics
+│ ├── feedbackUX ratings & comments
+│ └── education_views  Time spent on education
+│
+├── 🔐 AUTHENTICATION MODULE
+│├── auth/
+││├── __init__.pyPackage marker
+││├── password.pyTraditional password auth
+│││├── register_user()
+│││└── verify_credentials()
+││└── crypto.py  DID signature verification
+││ ├── verify_signature()
+││ └── get_user_by_wallet()
+│
+├── 📊 TELEMETRY MODULE
+│├── telemetry/
+││├── __init__.pyPackage marker
+││└── logger.py  Analytics & logging engine
+││ ├── log_auth_attempt()
+││ ├── log_education_view()
+││ ├── save_feedback()
+││ ├── get_session_attempts()
+││ ├── get_all_sessions()
+││ └── get_analytics() Comprehensive analytics
+│
+├── 🧩 CHROME EXTENSION
+│├── extension/
+││├── manifest.json Extension configuration (Manifest V3)
+││├── popup.html Wallet user interface
+││├── popup.jsWallet logic (create keys, sign)
+││├── content.js Page ↔ Extension communication
+││├── ICON_INSTRUCTIONS.txt  How to add icons
+│││
+││└── lib/ External libraries
+││ └── ethers.js ⚠️  MUST DOWNLOAD MANUALLY
+││  (Download: https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js)
+│
+├── 🎨 STATIC ASSETS
+│├── static/
+││├── css/
+│││└── style.css Complete styling (1000+ lines)
+│││ ├── Base styles
+│││ ├── Research flow styles
+│││ ├── Admin dashboard styles
+│││ ├── Forms & buttons
+│││ └── Responsive design
+│││
+││└── js/
+││ └── main.jsFrontend authentication handlers
+││  ├── Traditional login handler
+││  ├── DID login handler
+││  └── Extension communication
+│
+└── 📝 TEMPLATES (HTML Pages)
+ ├── templates/
+ │
+ │├── 🔬 RESEARCH FLOW (7 pages)
+ │├── intro.html Welcome & informed consent
+ │├── no_consent.html  Decline page
+ │├── authenticate.htmlLogin page (method-specific)
+ │├── education.htmlPros/cons education
+ │├── feedback.html UX feedback form
+ │├── final_feedback.html Comparative survey
+ │└── thank_you.htmlCompletion page
+ │
+ └── 🔐 ADMIN PANEL (2 pages)
+  ├── admin_login.html Admin authentication
+  └── admin_dashboard.htmlAnalytics dashboard
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Metrics Logging Module
+
+The system must log all metrics automatically to ensure accurate, unbiased, and reproducible research results. No manual input is allowed during logging.
+
+1. Authentication Performance Metrics (Must Log)
+    - Authentication method (TRADITIONAL / DID)
+    - Anonymized session ID
+    - Attempt number per session
+    - Authentication start time
+    - Authentication end time
+    - Total authentication duration (milliseconds)
+    - Authentication result (success / failure)
+
+Instructions:
+    - Log every attempt, including failed and abandoned ones.
+    - Calculate duration on the server side.
+    - Do not exclude retries.
+
+2. Error and Failure Metrics (Must Log)
+    - Error type (user error / system error)
+    - Standardized error code (e.g., INVALID_PASSWORD, INVALID_SIGNATURE, USER_REJECTED)
+    - Error message shown to the user
+    - Authentication method linked to the error
+
+Instructions:
+    - Each failure must map to one clear error code.
+    - Errors must be logged even if the user retries immediately.
+
+3. Usability and Interaction Metrics (Must Log)
+    - Number of attempts before success
+    - Retry count per method
+    - Drop-off indicator (no successful login in session)
+    - Method abandonment indicator
+    - Time spent on method-specific education screen
+
+Instructions:
+    - Track usability metrics per session.
+    - Do not reset counters until the session ends.
+
+4. User Feedback Metrics (Must Log)
+    - Ease of use rating (1–5)
+    - Perceived speed rating (1–5)
+    - Perceived security rating (1–5)
+    - Willingness to use again (Yes/No or Percentage)
+    - Optional free-text comments
+
+Instructions:
+    - Collect feedback immediately after each method.
+    - Link feedback to session, not to personal identity.
+
+5. Security-Relevant Metrics (Must Log)
+    - Nonce reuse attempts
+    - Expired nonce usage
+    - Invalid or mismatched signatures
+    - Multiple failed attempts within a short time window
+
+Instructions:
+    - Log security events separately from usability errors.
+    - Do not store cryptographic secrets or raw signatures.
+
+6. Session-Level Metrics (Must Log)
+    - First authentication method used
+    - Order of methods completed
+    - Total session duration
+    - Session completion status (completed / abandoned)
+
+Instructions:
+    - Use session-level data to analyze order bias and learning effects.
+    - Maintain full session history for analysis.
+
+7. Privacy and Ethics Constraints (Mandatory)
+    - No passwords, private keys, or raw signatures may be stored.
+    - All session identifiers must be anonymized.
+    - Raw behavioral data must be processed into aggregate metrics before storage.
+
+Instruction:
+    - Logging must comply with ethical research standards and informed consent.
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+DID Login Module: System Architecture & Workflow
+
+1. System Overview
+The Decentralized Identity (DID) login module replaces traditional shared-secret authentication (passwords) with a "Dual-Stack" research platform utilizing a Challenge-Response mechanism. It leverages a custom browser extension as the identity provider and a Python Flask backend for cryptographic verification.
+
+2. Technical Communication & Data Path
+The process follows a strict flow to ensure zero-latency measurement and high-security assurance
+1. Discovery Phase (Frontend ↔ Extension):
+    - The React.js frontend detects the custom extension provider injected into `window`
+    - User POV: User clicks "Login with Wallet".
+    - Telemetry: The system triggers a millisecond-precision timer to measure "Time-on-Task"
+
+2. Challenge Phase (Frontend ↔ Backend):
+    - The Frontend sends the user's Public Ethereum Address to the Flask API
+    - The Backend generates a cryptographically secure random "Nonce" (Number used once)
+    - The Nonce is stored in the database and linked to the user's session to prevent replay attacks
+
+
+3. Response Phase (Frontend ↔ Extension):
+    - The Backend returns the Nonce to the Frontend
+    - The Frontend invokes the extension to sign the Nonce using the private key (EIP-191 standard)
+    - User POV: A popup appears; the user approves the "Sign Message" request
+
+4. Verification Phase (Backend ↔ Database):
+    - The signature is posted back to the `verify` endpoint
+    - The Backend uses `web3.py` to recover the address from the signature and compares it with the address in the database
+    - The Check: If `Recovered_Address == Public_Address`, the user is verified
+
+5. User Experience (POV) & Result
+    - Seamless Access: The user never types a password, reducing "Password Fatigue"
+    - Security Assurance: Because the private key never leaves the extension, the account is immune to phishing attempts targeting static credentials
+    - Session Conclusion: Upon success, a JWT is issued, and the user is redirected to the Student Dashboard
+    - Research Data: The system logs final interaction metrics, including "Cognitive Hesitation Scores" based on mouse path deviation
+
+6. Admin Protocol (Kiosk Mode)
+To prepare for the next participant in a controlled lab environment, the Researcher triggers a "Reset"
+    - Programmatically revokes extension permissions via `wallet_revokePermissions`
+    - Clears local storage and session tokens to ensure a "clean" environment for the next user
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+ Traditional Login Module: Control Group Architecture & Workflow
+
+ 1. System Overview
+The Traditional Login Module serves as the "Baseline" or Control Group for the usability study. It utilizes a standard Shared-Secret architecture (Username/Password) to authenticate users against a centralized repository. This module is critical for quantifying "Password Fatigue" and provides the benchmark against which the DID pathway is measured.
+
+ 2. Technical Communication & Data Path
+To ensure a fair "A/B Test," the data path follows a high-standard secure development lifecycle:
+
+1. Initialization Phase (Frontend):
+    - The React.js frontend presents a standardized, high-fidelity UI identical in theme and layout to the DID portal
+   - User POV: User enters their University credentials (Username/Password).
+    - Telemetry: The "Black Box" logging begins at the first keystroke or when the "Login" button is clicked to measure total input time
+
+2. Security & Hashing (Backend ↔ Database):
+    - The Frontend sends credentials over a secure channel to the Flask API
+    - The Check: The Backend retrieves the Salted Hash associated with the username from the PostgreSQL `Users` table
+    - Verification: The system uses a secure hashing algorithm (like Argon2 or BCrypt) to verify the password without storing the actual string
+
+3. Telemetry & Interaction Monitoring:
+    - The system records not just success, but User Errors (typos, forgotten passwords) and System Errors.
+    - Cognitive Load: Mouse-path deviation and "idle-time-between-keystrokes" are recorded to measure hesitation.
+
+4. Authorization Phase:
+    - Upon verification, the Backend issues a JWT Session Token.
+    - The Destination: User is redirected to the Dashboard.
+    - Comparison Point: The system logs the final "time_taken_ms" into the `AuthLogs` table with the method label `TRADITIONAL` for statistical T-testing against the DID data.
+
+ 3. Research Significance (POV)
+    - The Friction Point: This module captures the "Interaction Cost" of manual data entry, which is the primary drawback of traditional systems.
+    - Threat Model: From a research POV, this module demonstrates the "Single Point of Failure"—if the database is compromised, all user secrets are exposed, unlike the DID pathway where no secrets are stored server-side.
+    - Baseline Metadata: This path provides the necessary data to prove whether the "Sovereign Pathway" actually lowers IT helpdesk burdens (like password resets) in a university setting.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+ Project Structure: User Experience & Page Architecture
+
+From a research participant's perspective, the platform is structured as a "Linear Experimental Funnel." This ensures that data collection—from the initial consent to the final usability survey—follows a controlled, logical path[cite: 141, 151].
+
+ 1. Landing & Consent Page (The Entry)
+    - Informational: Displays the research title, purpose of the study, and the Department of Cyber Security branding[cite: 424, 425].
+    - Functional: Contains the Participant Consent Form[cite: 423, 435]. The user must check the "Agree" boxes to proceed to the testing environment[cite: 435, 436].
+
+ 2. Pathway Selection (The Router)
+    - Informational: Briefly explains that the user will perform two different login tasks[cite: 428, 429].
+    - Functional: Uses an A/B Testing module to assign the user to "Sequence A" (Traditional first) or "Sequence B" (Sovereign first) to prevent order bias[cite: 151].
+
+ 3. The Authentication Interface (The Core Test)
+This page holds the "Dual-Stack" logic and changes its UI based on the active pathway[cite: 302, 341].
+
+ Pathway A: Traditional Login
+    - Informational: Standard fields for Username and Password[cite: 222, 260].
+    - Functional: Captures keystroke timing and credential verification against the PostgreSQL database[cite: 257, 260].
+
+ Pathway B: Sovereign Login (Your Custom Extension)
+    - Informational: Visual cues for "Connect Wallet" and "Sign Message"[cite: 251, 326].
+    - Functional: Interfaces with your browser extension provider to perform the ECDSA challenge-response handshake[cite: 224, 326].
+
+
+
+ 4. Post-Login Student Dashboard (Verification)
+    - Informational: Confirms successful authentication with a "Welcome, [User]" message and displays session metadata (e.g., Auth Method used)[cite: 254, 359].
+    - Functional: Holds the "Complete Task" button which signals the end of the timed telemetry session[cite: 371].
+
+ 5. Usability Evaluation Page (The Result)
+    - Informational: Presents the 5-point Likert Scale questions[cite: 405].
+    - Functional: Collects qualitative data on Perceived Ease of Use and Perceived Security[cite: 406, 411]. Upon submission, the "Admin Reset Protocol" triggers to clear all session data for the next user[cite: 266, 418].
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+ Integrated System Architecture: DID & Traditional Research Pathways
+
+This document outlines the professional architecture for a dual-stack research platform designed to empirically measure the usability of Decentralized Identity (DID) against traditional methods. By utilizing a pre-configured account and a mandatory "Admin Reset" between sessions, the study isolates recurring authentication friction.
+
+ 1. Project Page Architecture & Funnel
+The platform follows a linear flow to ensure consistent data collection across 200 participants:
+
+    - Landing Page: Displays institutional branding and the Participant Consent Form.
+    - Pathway Router: Assigns users to "Sequence A" or "Sequence B" to prevent order bias in the A/B test.
+    - The Auth Interface: The central testing node holding both the Traditional and Sovereign pathways.
+    - Post-Login Dashboard: A standardized landing area that signals task completion and logs the final telemetry.
+    - Usability Survey: Captures qualitative Likert-scale data on perceived ease of use and security.
+
+ 2. The Sovereign Pathway (Custom Extension)
+This module uses a "Challenge-Response" mechanism to prove identity without passwords.
+
+    - Origin (Frontend): React.js detects the custom provider and initiates the "Time-on-Task" timer.
+    - The Challenge (Backend): Flask generates a unique Nonce and stores it in Database
+    - The Response (Extension): The user signs the Nonce with a private key inside the extension using EIP-191.
+    - Verification: The Backend recovers the address via web3.py; if it matches the stored address, access is granted.
+    - User POV: Interaction is limited to a "Connect" and "Sign" popup, removing the need for manual data entry
+ 3. The Traditional Pathway (Control Group)
+This module acts as the scientific baseline for all interaction metrics.
+
+    - Input Handling: Standard Username/Password fields capture keystrokes and timing.
+    - Backend Check: Flask verifies the input against salted hashes in the centralized database.
+    - Interaction Friction: Specifically measures the "cost" of password recall and typing errors
+
+
+ 4. Telemetry & Analytics Engine
+This "Black Box" module silently logs high-frequency data for statistical analysis:
+
+    - Metric 1: Task Completion Time (milliseconds) from start to success
+    - Metric 2: Cognitive Hesitation Score derived from mouse path deviation and idle time
+    - Metric 3: Error Classification (e.g., USER_REJECTED vs. INVALID_CREDENTIALS)
+
+ 5. Admin Sanitization Protocol (Kiosk Mode)
+To ensure every user starts from a "cold" state, the researcher triggers a reset after each session
+
+    - Revocation: The system calls `wallet_revokePermissions` to force the extension to disconnect
+    - Purge: LocalStorage and session tokens are cleared to prevent cached data from influencing speed
+    - Result: The environment is sanitized, ensuring the next participant must perform the handshake manually.
+
+
