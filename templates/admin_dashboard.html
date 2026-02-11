@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Research Analytics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="admin-body">
+    <div class="admin-header">
+        <div class="container-wide">
+            <div class="header-content">
+                <h1>📊 Research Analytics Dashboard</h1>
+                <div class="header-actions">
+                    <button id="refresh-btn" class="btn btn-secondary btn-sm">🔄 Refresh</button>
+                    <button id="clear-data-btn" class="btn btn-danger btn-sm">🗑️ Clear All Data</button>
+                    <a href="/admin/logout" class="btn btn-secondary btn-sm">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-wide admin-container">
+        <!-- Overall Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Sessions</div>
+                    <div class="stat-value">{{ analytics.overall.total_sessions or 0 }}</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🔐</div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Attempts</div>
+                    <div class="stat-value">{{ analytics.overall.total_attempts or 0 }}</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-label">Success Rate</div>
+                    <div class="stat-value">
+                        {% if analytics.overall.total_attempts > 0 %}
+                            {{ "%.1f"|format((analytics.overall.successful_attempts / analytics.overall.total_attempts) * 100) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-content">
+                    <div class="stat-label">Avg Success Time</div>
+                    <div class="stat-value">
+                        {% if analytics.overall.avg_success_duration %}
+                            {{ "%.0f"|format(analytics.overall.avg_success_duration) }}ms
+                        {% else %}
+                            --
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Method Comparison -->
+        <div class="panel">
+            <h2>📈 Method Comparison</h2>
+            <div class="comparison-grid">
+                {% for method in analytics.by_method %}
+                <div class="method-card">
+                    <h3>{{ '🔐 Password' if method.method == 'TRADITIONAL' else '🔑 DID' }}</h3>
+                    <div class="method-stats">
+                        <div class="method-stat">
+                            <span class="label">Attempts:</span>
+                            <span class="value">{{ method.attempts }}</span>
+                        </div>
+                        <div class="method-stat">
+                            <span class="label">Success Rate:</span>
+                            <span class="value">{{ "%.1f"|format((method.successes / method.attempts) * 100) if method.attempts > 0 else 0 }}%</span>
+                        </div>
+                        <div class="method-stat">
+                            <span class="label">Avg Duration:</span>
+                            <span class="value">{{ "%.0f"|format(method.avg_duration) if method.avg_duration else '--' }}ms</span>
+                        </div>
+                        <div class="method-stat">
+                            <span class="label">Success Duration:</span>
+                            <span class="value">{{ "%.0f"|format(method.avg_success_duration) if method.avg_success_duration else '--' }}ms</span>
+                        </div>
+                        <div class="method-stat">
+                            <span class="label">Unique Users:</span>
+                            <span class="value">{{ method.unique_sessions }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Feedback Analysis -->
+        {% if analytics.feedback %}
+        <div class="panel">
+            <h2>💬 User Feedback Analysis</h2>
+            <div class="feedback-grid">
+                {% for fb in analytics.feedback %}
+                <div class="feedback-card">
+                    <h3>{{ '🔐 Password' if fb.method == 'TRADITIONAL' else '🔑 DID' }}</h3>
+                    <div class="feedback-metrics">
+                        <div class="metric">
+                            <div class="metric-label">Ease of Use</div>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: {{ (fb.avg_ease / 5 * 100)|round }}%"></div>
+                            </div>
+                            <div class="metric-value">{{ "%.1f"|format(fb.avg_ease) if fb.avg_ease else '--' }}/5</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Speed Rating</div>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: {{ (fb.avg_speed / 5 * 100)|round }}%"></div>
+                            </div>
+                            <div class="metric-value">{{ "%.1f"|format(fb.avg_speed) if fb.avg_speed else '--' }}/5</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Security Feeling</div>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: {{ (fb.avg_security / 5 * 100)|round }}%"></div>
+                            </div>
+                            <div class="metric-value">{{ "%.1f"|format(fb.avg_security) if fb.avg_security else '--' }}/5</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Would Use Again</div>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: {{ fb.would_use_percent|round }}%"></div>
+                            </div>
+                            <div class="metric-value">{{ "%.0f"|format(fb.would_use_percent) if fb.would_use_percent else 0 }}%</div>
+                        </div>
+                        <div class="metric-info">
+                            <small>Based on {{ fb.feedback_count }} responses</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Error Analysis -->
+        {% if analytics.errors %}
+        <div class="panel">
+            <h2>⚠️ Error Analysis</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Error Code</th>
+                        <th>Count</th>
+                        <th>Percentage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for error in analytics.errors %}
+                    <tr>
+                        <td>{{ '🔐 Password' if error.method == 'TRADITIONAL' else '🔑 DID' }}</td>
+                        <td><code>{{ error.error_code }}</code></td>
+                        <td>{{ error.count }}</td>
+                        <td>
+                            {% set method_attempts = (analytics.by_method|selectattr('method', 'equalto', error.method)|first).attempts %}
+                            {{ "%.1f"|format((error.count / method_attempts) * 100) if method_attempts > 0 else 0 }}%
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Recent Activity -->
+        <div class="panel">
+            <h2>🕒 Recent Activity (Last 50)</h2>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Session</th>
+                            <th>Method</th>
+                            <th>Attempt #</th>
+                            <th>Duration</th>
+                            <th>Result</th>
+                            <th>Error</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in analytics.recent_activity %}
+                        <tr class="{{ 'success-row' if activity.success else 'failure-row' }}">
+                            <td>{{ activity.timestamp.split('.')[0] }}</td>
+                            <td><small>{{ activity.session_id[:8] }}...</small></td>
+                            <td>
+                                <span class="badge badge-{{ 'traditional' if activity.method == 'TRADITIONAL' else 'did' }}">
+                                    {{ activity.method }}
+                                </span>
+                            </td>
+                            <td>{{ activity.attempt_number }}</td>
+                            <td>{{ "%.0f"|format(activity.duration_ms) }}ms</td>
+                            <td>{{ '✓ Success' if activity.success else '✗ Failed' }}</td>
+                            <td>
+                                {% if activity.error_code %}
+                                <code>{{ activity.error_code }}</code>
+                                {% else %}
+                                --
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Session List -->
+        <div class="panel">
+            <h2>📋 All Research Sessions</h2>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Session ID</th>
+                            <th>Started</th>
+                            <th>Status</th>
+                            <th>Consent</th>
+                            <th>First Method</th>
+                            <th>Attempts</th>
+                            <th>Successful</th>
+                            <th>Feedback</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sess in sessions %}
+                        <tr>
+                            <td><small>{{ sess.session_id[:12] }}...</small></td>
+                            <td>{{ sess.started_at.split('.')[0] if sess.started_at else '--' }}</td>
+                            <td>
+                                <span class="status-badge status-{{ sess.status }}">{{ sess.status }}</span>
+                            </td>
+                            <td>{{ '✓' if sess.consent_given else '✗' }}</td>
+                            <td>{{ sess.first_method or '--' }}</td>
+                            <td>{{ sess.total_attempts or 0 }}</td>
+                            <td>{{ sess.successful_attempts or 0 }}</td>
+                            <td>{{ sess.feedback_count or 0 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Refresh page
+        document.getElementById('refresh-btn').addEventListener('click', () => {
+            location.reload();
+        });
+
+        // Clear all data
+        document.getElementById('clear-data-btn').addEventListener('click', async () => {
+            if (!confirm('⚠️ Are you sure you want to clear ALL research data? This cannot be undone!')) {
+                return;
+            }
+
+            if (!confirm('This will permanently delete all sessions, attempts, and feedback. Continue?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/clear-data', {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('✓ All data cleared successfully');
+                    location.reload();
+                }
+            } catch (error) {
+                alert('Error clearing data: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="admin-login-box">
+            <h1>🔐 Admin Panel</h1>
+            <p class="subtitle">Research Platform Administration</p>
+
+            <form action="/admin/auth" method="POST" class="admin-login-form">
+                <div class="form-group">
+                    <label for="password">Admin Password:</label>
+                    <input type="password" id="password" name="password" required autofocus>
+                </div>
+
+                {% if error %}
+                <div class="error-message">{{ error }}</div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+
+            <div class="back-link">
+                <a href="/">← Back to Research Portal</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

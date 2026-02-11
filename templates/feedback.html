@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback - Research Study</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="progress-bar">
+            <div class="progress-step completed">1. Authenticate</div>
+            <div class="progress-step completed">2. Learn</div>
+            <div class="progress-step active">3. Feedback</div>
+            <div class="progress-step">4. Repeat</div>
+        </div>
+
+        <div class="feedback-box">
+            <h1>📝 Your Feedback</h1>
+            <p class="subtitle">Please share your experience with {{ 'Password' if method == 'TRADITIONAL' else 'DID' }} authentication</p>
+
+            <form id="feedback-form" class="feedback-form">
+                <div class="question-group">
+                    <label class="question-label">How easy was it to use this authentication method?</label>
+                    <div class="rating-scale">
+                        <input type="radio" name="ease_of_use" value="1" id="ease1" required>
+                        <label for="ease1">1<br><small>Very Difficult</small></label>
+                        
+                        <input type="radio" name="ease_of_use" value="2" id="ease2">
+                        <label for="ease2">2<br><small>Difficult</small></label>
+                        
+                        <input type="radio" name="ease_of_use" value="3" id="ease3">
+                        <label for="ease3">3<br><small>Neutral</small></label>
+                        
+                        <input type="radio" name="ease_of_use" value="4" id="ease4">
+                        <label for="ease4">4<br><small>Easy</small></label>
+                        
+                        <input type="radio" name="ease_of_use" value="5" id="ease5">
+                        <label for="ease5">5<br><small>Very Easy</small></label>
+                    </div>
+                </div>
+
+                <div class="question-group">
+                    <label class="question-label">How would you rate the speed of authentication?</label>
+                    <div class="rating-scale">
+                        <input type="radio" name="speed_rating" value="1" id="speed1" required>
+                        <label for="speed1">1<br><small>Very Slow</small></label>
+                        
+                        <input type="radio" name="speed_rating" value="2" id="speed2">
+                        <label for="speed2">2<br><small>Slow</small></label>
+                        
+                        <input type="radio" name="speed_rating" value="3" id="speed3">
+                        <label for="speed3">3<br><small>Average</small></label>
+                        
+                        <input type="radio" name="speed_rating" value="4" id="speed4">
+                        <label for="speed4">4<br><small>Fast</small></label>
+                        
+                        <input type="radio" name="speed_rating" value="5" id="speed5">
+                        <label for="speed5">5<br><small>Very Fast</small></label>
+                    </div>
+                </div>
+
+                <div class="question-group">
+                    <label class="question-label">How secure did this method feel?</label>
+                    <div class="rating-scale">
+                        <input type="radio" name="security_feeling" value="1" id="security1" required>
+                        <label for="security1">1<br><small>Very Insecure</small></label>
+                        
+                        <input type="radio" name="security_feeling" value="2" id="security2">
+                        <label for="security2">2<br><small>Insecure</small></label>
+                        
+                        <input type="radio" name="security_feeling" value="3" id="security3">
+                        <label for="security3">3<br><small>Neutral</small></label>
+                        
+                        <input type="radio" name="security_feeling" value="4" id="security4">
+                        <label for="security4">4<br><small>Secure</small></label>
+                        
+                        <input type="radio" name="security_feeling" value="5" id="security5">
+                        <label for="security5">5<br><small>Very Secure</small></label>
+                    </div>
+                </div>
+
+                <div class="question-group">
+                    <label class="question-label">Would you use this method again if it were available?</label>
+                    <div class="yes-no-buttons">
+                        <input type="radio" name="would_use_again" value="1" id="would_yes" required>
+                        <label for="would_yes" class="yes-button">✓ Yes</label>
+                        
+                        <input type="radio" name="would_use_again" value="0" id="would_no">
+                        <label for="would_no" class="no-button">✗ No</label>
+                    </div>
+                </div>
+
+                <div class="question-group">
+                    <label class="question-label">Additional comments (optional):</label>
+                    <textarea name="comments" id="comments" rows="4" 
+                             placeholder="Share any thoughts, difficulties, or suggestions..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large">
+                    <span id="submit-text">Submit Feedback</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const method = '{{ method }}';
+
+        document.getElementById('feedback-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                method: method,
+                ease_of_use: parseInt(formData.get('ease_of_use')),
+                speed_rating: parseInt(formData.get('speed_rating')),
+                security_feeling: parseInt(formData.get('security_feeling')),
+                would_use_again: parseInt(formData.get('would_use_again')) === 1,
+                comments: formData.get('comments')
+            };
+
+            const btn = document.getElementById('submit-text');
+            const originalText = btn.textContent;
+            btn.textContent = 'Submitting...';
+
+            try {
+                const response = await fetch('/api/feedback/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (result.redirect) {
+                    window.location.href = result.redirect;
+                }
+            } catch (error) {
+                btn.textContent = originalText;
+                alert('Error submitting feedback. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

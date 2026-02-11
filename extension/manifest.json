@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "DID Research Wallet",
+  "version": "2.0",
+  "description": "Secure wallet for authentication research",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["http://127.0.0.1:5000/*", "http://localhost:5000/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "DID Wallet",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://127.0.0.1:5000/*", "http://localhost:5000/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

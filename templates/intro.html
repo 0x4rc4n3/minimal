@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Authentication Research</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="intro-header">
+            <h1>🔬 Authentication Methods Research Study</h1>
+            <p class="subtitle">Comparing Traditional and Decentralized Identity Login Systems</p>
+        </div>
+
+        <div class="content-box">
+            <h2>Welcome!</h2>
+            <p>Thank you for participating in our research study. We are investigating different methods of authentication to understand their usability and user experience.</p>
+            
+            <h3>📋 What You'll Do:</h3>
+            <ul class="info-list">
+                <li>You will try <strong>two different login methods</strong></li>
+                <li>After each method, you'll see educational content explaining how it works</li>
+                <li>You'll provide feedback about your experience with each method</li>
+                <li>The entire study takes approximately <strong>5-7 minutes</strong></li>
+            </ul>
+
+            <h3>🔒 Privacy & Data:</h3>
+            <ul class="info-list">
+                <li>We collect timing data and your feedback responses</li>
+                <li>Your responses are anonymous and used only for research</li>
+                <li>No personal information is collected beyond what's needed for authentication testing</li>
+                <li>You can withdraw at any time</li>
+            </ul>
+
+            <h3>ℹ️ Study Details:</h3>
+            <ul class="info-list">
+                <li>You will authenticate using both traditional passwords and decentralized identity</li>
+                <li>The order will be randomized</li>
+                <li>We measure completion time and success rates</li>
+                <li>Your feedback helps improve authentication systems</li>
+            </ul>
+        </div>
+
+        <div class="consent-box">
+            <h3>📝 Informed Consent</h3>
+            <p>By clicking "I Agree", you confirm that:</p>
+            <ul class="consent-list">
+                <li>You understand the purpose of this study</li>
+                <li>You are participating voluntarily</li>
+                <li>You consent to having your interaction data (timing, success/failure, feedback) collected anonymously</li>
+                <li>You understand you can withdraw at any time</li>
+            </ul>
+
+            <form action="/consent" method="POST" id="consent-form">
+                <div class="consent-buttons">
+                    <button type="submit" name="consent" value="yes" class="btn btn-primary btn-large">
+                        ✓ I Agree - Begin Study
+                    </button>
+                    <button type="submit" name="consent" value="no" class="btn btn-secondary">
+                        ✗ I Do Not Agree
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="footer-note">
+            <p><small>If you have questions about this research, please contact the research team.</small></p>
+        </div>
+    </div>
+</body>
+</html>

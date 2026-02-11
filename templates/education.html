@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn About {{ method }} - Research Study</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="progress-bar">
+            <div class="progress-step completed">1. Authenticate</div>
+            <div class="progress-step active">2. Learn</div>
+            <div class="progress-step">3. Feedback</div>
+            <div class="progress-step">4. Repeat</div>
+        </div>
+
+        {% if method == 'TRADITIONAL' %}
+        <div class="education-box">
+            <h1>🔐 Traditional Password Authentication</h1>
+            <p class="subtitle">How the method you just used works</p>
+
+            <div class="edu-section">
+                <h2>How It Works:</h2>
+                <ol class="edu-list">
+                    <li>You create an account with a username and password</li>
+                    <li>Your password is hashed (encrypted) and stored in a database</li>
+                    <li>When you log in, your entered password is hashed and compared to the stored hash</li>
+                    <li>If they match, you're authenticated and granted access</li>
+                </ol>
+            </div>
+
+            <div class="pros-cons-grid">
+                <div class="pros-box">
+                    <h3>✅ Advantages</h3>
+                    <ul>
+                        <li><strong>Familiar:</strong> Most people know how to use passwords</li>
+                        <li><strong>Simple:</strong> Just remember username and password</li>
+                        <li><strong>Universal:</strong> Works on any device with a keyboard</li>
+                        <li><strong>Recoverable:</strong> Can reset password via email</li>
+                        <li><strong>No special software:</strong> Built into every website</li>
+                    </ul>
+                </div>
+
+                <div class="cons-box">
+                    <h3>❌ Disadvantages</h3>
+                    <ul>
+                        <li><strong>Memory burden:</strong> Need to remember many passwords</li>
+                        <li><strong>Reuse risk:</strong> People often reuse passwords across sites</li>
+                        <li><strong>Phishing vulnerable:</strong> Can be tricked into giving password away</li>
+                        <li><strong>Data breach risk:</strong> If database is hacked, passwords may be compromised</li>
+                        <li><strong>Weak passwords:</strong> Users often choose easy-to-guess passwords</li>
+                        <li><strong>Centralized:</strong> The website controls your account access</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <h3>🔒 Security Considerations:</h3>
+                <p>Modern password systems use techniques like:</p>
+                <ul class="edu-list">
+                    <li>Password hashing (bcrypt, Argon2) to protect stored passwords</li>
+                    <li>Two-factor authentication (2FA) for extra security</li>
+                    <li>Password strength requirements</li>
+                    <li>Account lockout after failed attempts</li>
+                </ul>
+            </div>
+        </div>
+        {% else %}
+        <div class="education-box">
+            <h1>🔑 Decentralized Identity (DID) Authentication</h1>
+            <p class="subtitle">How the method you just used works</p>
+
+            <div class="edu-section">
+                <h2>How It Works:</h2>
+                <ol class="edu-list">
+                    <li>Your wallet generates a cryptographic key pair (private key + public address)</li>
+                    <li>The website sends you a unique challenge (nonce)</li>
+                    <li>Your wallet signs the challenge with your private key</li>
+                    <li>The website verifies the signature mathematically proves you own that address</li>
+                    <li>No password is ever stored or transmitted</li>
+                </ol>
+            </div>
+
+            <div class="pros-cons-grid">
+                <div class="pros-box">
+                    <h3>✅ Advantages</h3>
+                    <ul>
+                        <li><strong>No passwords:</strong> Nothing to remember or forget</li>
+                        <li><strong>Phishing resistant:</strong> Signature only works for specific challenge</li>
+                        <li><strong>Privacy preserving:</strong> No personal info required</li>
+                        <li><strong>Decentralized:</strong> You control your own identity</li>
+                        <li><strong>No data breach risk:</strong> Website doesn't store authentication secrets</li>
+                        <li><strong>Cryptographically secure:</strong> Uses proven mathematical security</li>
+                        <li><strong>Multi-site:</strong> One identity works across many sites</li>
+                    </ul>
+                </div>
+
+                <div class="cons-box">
+                    <h3>❌ Disadvantages</h3>
+                    <ul>
+                        <li><strong>Requires software:</strong> Must install wallet extension</li>
+                        <li><strong>Learning curve:</strong> New concept for most users</li>
+                        <li><strong>Key management:</strong> Lose private key = lose access forever</li>
+                        <li><strong>No recovery:</strong> Can't reset like a password</li>
+                        <li><strong>Less familiar:</strong> Most people haven't used it before</li>
+                        <li><strong>Device dependent:</strong> Need device with your wallet</li>
+                        <li><strong>Adoption:</strong> Not yet supported by most websites</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="edu-section">
+                <h3>🔐 Technical Details:</h3>
+                <p>DID authentication uses:</p>
+                <ul class="edu-list">
+                    <li>Elliptic Curve Cryptography (same as Bitcoin/Ethereum)</li>
+                    <li>Digital signatures that prove ownership without revealing the private key</li>
+                    <li>Challenge-response protocol to prevent replay attacks</li>
+                    <li>No centralized server storing your credentials</li>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="continue-box">
+            <button id="continue-btn" class="btn btn-primary btn-large">
+                Continue to Feedback →
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const method = '{{ method }}';
+        const startTime = Date.now();
+
+        document.getElementById('continue-btn').addEventListener('click', async () => {
+            const duration = (Date.now() - startTime) / 1000;
+            
+            await fetch('/api/education/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ method: method })
+            }).then(res => res.json())
+              .then(data => {
+                  if (data.redirect) {
+                      window.location.href = data.redirect;
+                  }
+              });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Feedback - Research Study</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="progress-bar">
+            <div class="progress-step completed">1. Authenticate</div>
+            <div class="progress-step completed">2. Learn</div>
+            <div class="progress-step completed">3. Feedback</div>
+            <div class="progress-step active">4. Complete</div>
+        </div>
+
+        <div class="final-feedback-box">
+            <h1>🎯 Final Comparison</h1>
+            <p class="subtitle">You've now tried both authentication methods. Please help us understand your preferences.</p>
+
+            <form id="final-form" class="feedback-form">
+                <div class="question-group">
+                    <label class="question-label">Which method did you find easier to use overall?</label>
+                    <div class="choice-buttons">
+                        <input type="radio" name="preferred_ease" value="TRADITIONAL" id="ease_trad" required>
+                        <label for="ease_trad" class="choice-button">🔐 Password</label>
+                        
+                        <input type="radio" name="preferred_ease" value="DID" id="ease_did">
+                        <label for="ease_did" class="choice-button">🔑 DID</label>
+                        
+                        <input type="radio" name="preferred_ease" value="SAME" id="ease_same">
+                        <label for="ease_same" class="choice-button">= Equal</label>
+                    </div>
+                </div>
+
+                <div class="question-group">
+                    <label class="question-label">Which method felt more secure?</label>
+                    <div class="choice-buttons">
+                        <input type="radio" name="preferred_security" value="TRADITIONAL" id="sec_trad" required>
+                        <label for="sec_trad" class="choice-button">🔐 Password</label>
+                        
+                        <input type="radio" name="preferred_security" value="DID" id="sec_did">
+                        <label for="sec_did" class="choice-button">🔑 DID</label>
+                        
+                        <input type="radio" name="preferred_security" value="SAME" id="sec_same">
+                        <label for="sec_same" class="choice-button">= Equal</label>
+                    </div>
+                </div>
+
+                <div class="question-group">
+                    <label class="question-label">Which method would you prefer for everyday use?</label>
+                    <div class="choice-buttons">
+                        <input type="radio" name="preferred_overall" value="TRADITIONAL" id="pref_trad" required>
+                        <label for="pref_trad" class="choice-button">🔐 Password</label>
+                        
+                        <input type="radio" name="preferred_overall" value="DID" id="pref_did">
+                        <label for="pref_did" class="choice-button">🔑 DID</label>
+                        
+                        <input type="radio" name="preferred_overall" value="EITHER" id="pref_either">
+                        <label for="pref_either" class="choice-button">✓ Either is fine</label>
+                    </div>
+                </div>
+
+                <div class="question-group">
+                    <label class="question-label">Any final thoughts or observations?</label>
+                    <textarea name="final_comments" rows="4" 
+                             placeholder="What did you think about the differences between the two methods?"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large">
+                    <span id="submit-text">Complete Study</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('final-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submit-text');
+            btn.textContent = 'Submitting...';
+
+            try {
+                const response = await fetch('/api/final-feedback/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+
+                const result = await response.json();
+                if (result.redirect) {
+                    window.location.href = result.redirect;
+                }
+            } catch (error) {
+                btn.textContent = 'Complete Study';
+                alert('Error submitting. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>
